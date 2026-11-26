@@ -9,6 +9,9 @@ const NAV = [
         roles: ["admin", "staff", "trainer"],
         end: true,
     },
+    { to: "/members", label: "Members", roles: ["admin", "staff", "trainer"] },
+    { to: "/check-in", label: "Check-in", roles: ["admin", "staff"] },
+    { to: "/reports", label: "Laporan", roles: ["admin", "staff"] },
 ];
 
 export default function AppLayout() {

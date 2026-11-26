@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import api, { getErrorMessage } from "../lib/api";
 import { formatRupiah } from "../lib/format";
+import { Navigate } from "react-router-dom";
 
 function Card({ label, value }) {
     return (
@@ -29,18 +30,7 @@ export default function Dashboard() {
             .catch((err) => setError(getErrorMessage(err)));
     }, [canSeeSummary]);
 
-    if (!canSeeSummary) {
-        return (
-            <div>
-                <h1 className="text-xl font-semibold text-gray-900">
-                    Halo, {user.name}
-                </h1>
-                <p className="mt-1 text-sm text-gray-500">
-                    Halaman untuk trainer akan segera hadir.
-                </p>
-            </div>
-        );
-    }
+    if (!canSeeSummary) return <Navigate to="/members" replace />;
 
     if (error)
         return (
