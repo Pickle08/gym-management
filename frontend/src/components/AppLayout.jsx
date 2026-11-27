@@ -1,5 +1,7 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useState } from "react";
+import ChangePasswordModal from "./ChangePasswordModal";
 
 // Tambah item di sini tiap halaman baru jadi. roles = siapa yang boleh lihat menu itu.
 const NAV = [
@@ -12,11 +14,14 @@ const NAV = [
     { to: "/members", label: "Members", roles: ["admin", "staff", "trainer"] },
     { to: "/check-in", label: "Check-in", roles: ["admin", "staff"] },
     { to: "/reports", label: "Laporan", roles: ["admin", "staff"] },
+    { to: "/plans", label: "Plans", roles: ["admin"] },
+    { to: "/users", label: "Users", roles: ["admin"] },
 ];
 
 export default function AppLayout() {
     const { user, logout } = useAuth();
     const items = NAV.filter((item) => item.roles.includes(user.role));
+    const [showPassword, setShowPassword] = useState(false);
 
     const linkClass = ({ isActive }) =>
         `whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium ${
@@ -54,17 +59,27 @@ export default function AppLayout() {
                             {user.role}
                         </span>
                     </div>
-                    <button
-                        onClick={logout}
-                        className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50">
-                        Logout
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setShowPassword(true)}
+                            className="px-2 py-1.5 text-sm text-gray-600 hover:text-gray-900">
+                            Ganti password
+                        </button>
+                        <button
+                            onClick={logout}
+                            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50">
+                            Logout
+                        </button>
+                    </div>
                 </header>
 
                 <main className="flex-1 p-4 md:p-6">
                     <Outlet />
                 </main>
             </div>
+            {showPassword && (
+                <ChangePasswordModal onClose={() => setShowPassword(false)} />
+            )}
         </div>
     );
 }
