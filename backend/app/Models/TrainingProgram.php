@@ -6,6 +6,7 @@ use App\Services\NutritionCalculator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TrainingProgram extends Model
 {
@@ -87,5 +88,10 @@ class TrainingProgram extends Model
     public function trainer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'trainer_id');
+    }
+
+    public function progressLogs(): HasMany
+    {
+        return $this->hasMany(ProgressLog::class);
     }
 }

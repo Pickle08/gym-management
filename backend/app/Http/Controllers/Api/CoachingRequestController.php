@@ -11,6 +11,7 @@ use App\Services\CoachingService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Models\User;
 
 class CoachingRequestController extends Controller
 {
@@ -27,12 +28,14 @@ class CoachingRequestController extends Controller
         $request->validate([
             'status' => ['nullable', 'in:pending,accepted,rejected,cancelled'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'member_id' => ['nullable', 'integer'],
         ]);
 
         $requests = CoachingRequest::query()
             ->visibleTo($request->user())
             ->with(self::WITH)
             ->when($request->status, fn($q, $s) => $q->where('status', $s))
+            ->when($request->member_id, fn($q, $id) => $q->where('member_id', $id))
             ->latest('id')
             ->paginate($request->integer('per_page', 15));
 
@@ -45,6 +48,16 @@ class CoachingRequestController extends Controller
                 'total' => $requests->total(),
             ],
         ]);
+    }
+
+    public function trainers(): JsonResponse
+    {
+        $trainers = User::where('role', User::ROLE_TRAINER)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return $this->success($trainers);
     }
 
     public function store(StoreCoachingRequest $request): JsonResponse

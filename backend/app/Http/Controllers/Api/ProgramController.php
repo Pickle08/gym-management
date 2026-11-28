@@ -27,6 +27,7 @@ class ProgramController extends Controller
         $request->validate([
             'current' => ['nullable', 'boolean'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'member_id' => ['nullable', 'integer'],
         ]);
 
         // trainer melihat semua program miliknya (termasuk yang sudah selesai) sebagai riwayat
@@ -34,6 +35,7 @@ class ProgramController extends Controller
             ->visibleTo($request->user())
             ->with(self::WITH)
             ->when($request->boolean('current'), fn($q) => $q->current())
+            ->when($request->member_id, fn($q, $id) => $q->where('member_id', $id))
             ->latest('id')
             ->paginate($request->integer('per_page', 15));
 

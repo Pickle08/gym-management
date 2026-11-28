@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\CoachingRequestController;
 use App\Http\Controllers\Api\ProgramController;
+use App\Http\Controllers\Api\ProgressLogController;
 
 // Public
 Route::post('auth/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
@@ -61,6 +62,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::post('coaching-requests', [CoachingRequestController::class, 'store']);
         Route::post('coaching-requests/{id}/cancel', [CoachingRequestController::class, 'cancel'])->whereNumber('id');
+
+        Route::get('trainers', [CoachingRequestController::class, 'trainers']);
     });
 
     // admin only
@@ -84,5 +87,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('coaching-requests/{id}/respond', [CoachingRequestController::class, 'respond'])->whereNumber('id');
         Route::put('programs/{id}/nutrition', [ProgramController::class, 'updateNutrition'])->whereNumber('id');
         Route::patch('programs/{id}/status', [ProgramController::class, 'updateStatus'])->whereNumber('id');
+
+        Route::get('programs/{id}/logs', [ProgressLogController::class, 'index'])->whereNumber('id');
+        Route::post('programs/{id}/logs', [ProgressLogController::class, 'store'])->whereNumber('id');
+        Route::put('progress-logs/{id}', [ProgressLogController::class, 'update'])->whereNumber('id');
+        Route::delete('progress-logs/{id}', [ProgressLogController::class, 'destroy'])->whereNumber('id');
     });
 });

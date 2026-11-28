@@ -350,4 +350,29 @@ class CoachingTest extends TestCase
             ->postJson('/api/coaching-requests', $this->coachingPayload($member, $this->trainer))
             ->assertCreated();
     }
+
+    public function test_staff_lists_only_active_trainers_and_trainer_cannot(): void
+    {
+        $this->makeTrainer(['is_active' => false]);
+
+        $this->actAs($this->staff)
+            ->getJson('/api/trainers')
+            ->assertOk()
+            ->assertJsonCount(1, 'data'); // hanya trainer aktif dari setUp()
+
+        $this->actAs($this->trainer)->getJson('/api/trainers')->assertForbidden();
+    }
+
+    public function test_requests_can_be_filtered_by_member(): void
+    {
+        $a = $this->member();
+        $b = $this->member();
+        $this->pending($a);
+        $this->pending($b);
+
+        $this->actAs($this->staff)
+            ->getJson("/api/coaching-requests?member_id={$a->id}")
+            ->assertOk()
+            ->assertJsonPath('data.meta.total', 1);
+    }
 }

@@ -7,10 +7,11 @@ use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\CoachingService;
 use Illuminate\Database\Seeder;
+use App\Services\ProgressService;
 
 class CoachingDemoSeeder extends Seeder
 {
-    public function run(CoachingService $coaching): void
+    public function run(CoachingService $coaching, ProgressService $progress): void
     {
         $staff = User::where('email', 'staff@gym.test')->firstOrFail();
         $t1 = User::where('email', 'trainer@gym.test')->firstOrFail();
@@ -35,7 +36,11 @@ class CoachingDemoSeeder extends Seeder
                 'notes' => 'Cedera bahu kanan, sudah pulih',
                 'outcome' => 'accept',
                 'weeks' => 12,
-                'nutrition' => [2000, 160, 200, 62]
+                'nutrition' => [2000, 160, 200, 62],
+                'ago' => 6,
+                'rate' => -0.5,
+                'bf' => 24.0,
+                'bf_rate' => -0.3
             ],
             [
                 'trainer' => $t1,
@@ -48,7 +53,11 @@ class CoachingDemoSeeder extends Seeder
                 'notes' => null,
                 'outcome' => 'accept',
                 'weeks' => 16,
-                'nutrition' => [3000, 180, 380, 90]
+                'nutrition' => [3000, 180, 380, 90],
+                'ago' => 4,
+                'rate' => 0.4,
+                'bf' => 14.0,
+                'bf_rate' => 0.1
             ],
             [
                 'trainer' => $t2,
@@ -61,7 +70,11 @@ class CoachingDemoSeeder extends Seeder
                 'notes' => 'Nyeri lutut kiri saat squat dalam',
                 'outcome' => 'accept',
                 'weeks' => 8,
-                'nutrition' => [2400, 190, 250, 70]
+                'nutrition' => [2400, 190, 250, 70],
+                'ago' => 3,
+                'rate' => -0.2,
+                'bf' => 26.0,
+                'bf_rate' => -0.4
             ],
             [
                 'trainer' => $t1,
@@ -98,7 +111,11 @@ class CoachingDemoSeeder extends Seeder
                 'outcome' => 'accept',
                 'weeks' => 4,
                 'nutrition' => [2800, 170, 350, 85],
-                'close' => true
+                'close' => true,
+                'ago' => 5,
+                'rate' => 0.5,
+                'bf' => null,
+                'bf_rate' => 0
             ],
         ];
 
@@ -124,7 +141,11 @@ class CoachingDemoSeeder extends Seeder
                 continue;
             }
 
-            $coaching->respond($request, ['action' => 'accept', 'duration_weeks' => $s['weeks']]);
+            $coaching->respond($request, [
+                'action' => 'accept',
+                'duration_weeks' => $s['weeks'],
+                'start_date' => today()->subWeeks($s['ago'])->toDateString(),
+            ]);
             $program = TrainingProgram::where('coaching_request_id', $request->id)->firstOrFail();
 
             [$kcal, $protein, $carbs, $fats] = $s['nutrition'];
@@ -135,6 +156,21 @@ class CoachingDemoSeeder extends Seeder
                 'fats_g' => $fats,
                 'diet_guidelines' => 'Protein di setiap makan, air minimal 2,5 liter per hari.',
             ]);
+
+            for ($w = 0; ; $w++) {
+                $date = $program->start_date->copy()->addWeeks($w);
+
+                if ($date->gt(today()) || $date->gt($program->end_date)) {
+                    break;
+                }
+
+                $progress->create($program, [
+                    'log_date' => $date->toDateString(),
+                    'weight_kg' => round($s['weight'] + $s['rate'] * $w + mt_rand(-3, 3) / 10, 1),
+                    'body_fat_pct' => $s['bf'] !== null ? round($s['bf'] + $s['bf_rate'] * $w, 1) : null,
+                    'notes' => $w === 0 ? 'Pengukuran awal' : null,
+                ], $s['trainer']);
+            }
 
             if (!empty($s['close'])) {
                 $coaching->closeProgram($program, TrainingProgram::STATUS_COMPLETED);
