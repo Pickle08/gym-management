@@ -8,12 +8,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Builder;
 
 class Member extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = ['name', 'phone', 'email', 'birth_date', 'address'];
+    protected $fillable = ['name', 'phone', 'email', 'birth_date', 'gender', 'address'];
 
     protected $hidden = ['qr_token'];
 
@@ -54,5 +55,27 @@ class Member extends Model
     public function activeMembership(): ?Membership
     {
         return $this->memberships()->active()->latest('end_date')->first();
+    }
+    public function coachingRequests(): HasMany
+    {
+        return $this->hasMany(CoachingRequest::class);
+    }
+
+    public function trainingPrograms(): HasMany
+    {
+        return $this->hasMany(TrainingProgram::class);
+    }
+
+    // Trainer hanya boleh melihat member yang sedang dia tangani
+    public function scopeVisibleTo(Builder $query, User $user): Builder
+    {
+        if (!$user->hasRole(User::ROLE_TRAINER)) {
+            return $query;
+        }
+
+        return $query->whereHas(
+            'trainingPrograms',
+            fn($p) => $p->current()->where('trainer_id', $user->id)
+        );
     }
 }

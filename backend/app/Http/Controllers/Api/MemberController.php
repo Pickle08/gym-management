@@ -25,6 +25,7 @@ class MemberController extends Controller
 
         $members = Member::query()
             ->with('currentMembership')
+            ->visibleTo($request->user())
             ->when($request->q, function ($query, $q) {
                 $query->where(function ($w) use ($q) {
                     $w->where('name', 'like', "%{$q}%")
@@ -55,8 +56,10 @@ class MemberController extends Controller
         return $this->success(new MemberResource($member), 'Member berhasil dibuat.', 201);
     }
 
-    public function show(Member $member): JsonResponse
+    public function show(Request $request, Member $member): JsonResponse
     {
+        abort_unless(Member::visibleTo($request->user())->whereKey($member->id)->exists(), 404);
+
         $member->load('currentMembership');
 
         return $this->success(new MemberResource($member));

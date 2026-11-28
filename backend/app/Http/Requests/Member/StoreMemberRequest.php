@@ -25,6 +25,7 @@ class StoreMemberRequest extends FormRequest
             ],
             'email' => ['nullable', 'email', 'max:255'],
             'birth_date' => ['nullable', 'date', 'before:today'],
+            'gender' => ['nullable', Rule::in(['male', 'female'])],
             'address' => ['nullable', 'string', 'max:1000'],
         ];
     }

@@ -43,4 +43,31 @@ trait CreatesFixtures
 
         return $member;
     }
+
+    protected function makeTrainer(array $attrs = []): User
+    {
+        return User::factory()->create(array_merge(['role' => 'trainer', 'is_active' => true], $attrs));
+    }
+
+    // Ganti pengguna di tengah test. forgetGuards() wajib: guard Sanctum menyimpan user
+// dari request pertama, tanpa ini request berikutnya diam-diam masih jadi user lama.
+    protected function actAs(User $user): static
+    {
+        app('auth')->forgetGuards();
+
+        return $this->withToken($user->createToken('test')->plainTextToken);
+    }
+
+    protected function coachingPayload(Member $member, User $trainer, array $override = []): array
+    {
+        return array_merge([
+            'member_id' => $member->id,
+            'trainer_id' => $trainer->id,
+            'goal_type' => 'cutting',
+            'height_cm' => 172,
+            'initial_weight_kg' => 82.5,
+            'target_weight_kg' => 75,
+            'activity_level' => 'moderate',
+        ], $override);
+    }
 }

@@ -49,6 +49,12 @@ class AttendanceController extends Controller
 
         $query = Attendance::query()->with(['member', 'membership', 'checkedInBy']);
 
+        $user = $request->user();
+
+        if ($user->hasRole(\App\Models\User::ROLE_TRAINER)) {
+            $query->whereHas('member', fn($m) => $m->visibleTo($user));
+        }
+
         if ($request->filled('member_id')) {
             $query->where('member_id', $request->integer('member_id'));
         }

@@ -18,6 +18,7 @@ class MemberResource extends JsonResource
             'phone' => $this->phone,
             'email' => $this->email,
             'birth_date' => $this->birth_date?->toDateString(),
+            'gender' => $this->gender,
             'address' => $this->address,
             'current_membership' => $this->whenLoaded('currentMembership', fn() => $this->currentMembership ? [
                 'id' => $this->currentMembership->id,

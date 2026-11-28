@@ -18,6 +18,7 @@ class UserSeeder extends Seeder
             ['name' => 'Admin', 'email' => 'admin@gym.test', 'role' => User::ROLE_ADMIN],
             ['name' => 'Staff', 'email' => 'staff@gym.test', 'role' => User::ROLE_STAFF],
             ['name' => 'Trainer', 'email' => 'trainer@gym.test', 'role' => User::ROLE_TRAINER],
+            ['name' => 'Trainer 2', 'email' => 'trainer2@gym.test', 'role' => User::ROLE_TRAINER],
         ];
 
         foreach ($users as $u) {

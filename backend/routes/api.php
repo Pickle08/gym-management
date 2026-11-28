@@ -10,6 +10,8 @@ use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\CoachingRequestController;
+use App\Http\Controllers\Api\ProgramController;
 
 // Public
 Route::post('auth/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
@@ -29,6 +31,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('members', [MemberController::class, 'index']);
         Route::get('members/{member}', [MemberController::class, 'show']);
         Route::get('attendances', [AttendanceController::class, 'index']);
+        Route::get('coaching-requests', [CoachingRequestController::class, 'index']);
+        Route::get('coaching-requests/{id}', [CoachingRequestController::class, 'show'])->whereNumber('id');
+        Route::get('programs', [ProgramController::class, 'index']);
+        Route::get('programs/{id}', [ProgramController::class, 'show'])->whereNumber('id');
     });
 
     // admin, staff
@@ -52,6 +58,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('dashboard/summary', [DashboardController::class, 'summary']);
         Route::get('dashboard/expiring', [DashboardController::class, 'expiring']);
         Route::get('reports/attendance', [ReportController::class, 'attendance']);
+
+        Route::post('coaching-requests', [CoachingRequestController::class, 'store']);
+        Route::post('coaching-requests/{id}/cancel', [CoachingRequestController::class, 'cancel'])->whereNumber('id');
     });
 
     // admin only
@@ -68,5 +77,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('users', [UserController::class, 'store']);
         Route::get('users/{user}', [UserController::class, 'show']);
         Route::put('users/{user}', [UserController::class, 'update']);
+    });
+
+    // admin atau trainer yang menangani (kepemilikan dicek lewat scope visibleTo)
+    Route::middleware('role:admin,trainer')->group(function () {
+        Route::patch('coaching-requests/{id}/respond', [CoachingRequestController::class, 'respond'])->whereNumber('id');
+        Route::put('programs/{id}/nutrition', [ProgramController::class, 'updateNutrition'])->whereNumber('id');
+        Route::patch('programs/{id}/status', [ProgramController::class, 'updateStatus'])->whereNumber('id');
     });
 });
